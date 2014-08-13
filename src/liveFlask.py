@@ -5,9 +5,16 @@ app = Flask(__name__)
 
 livestreamer = 0
 
-@app.route("/", methods = ['GET'])
-def hello():
-    return "Hello World"
+@app.route("/stream/play/<service>/<streamer>", methods = ['GET'])
+def hello(service, streamer):
+    global livestreamer
+
+    if(isinstance(livestreamer,subprocess.Popen)):
+        terminate_stream(livestreamer)
+
+    livestreamer = subprocess.Popen(["livestreamer", service + "/" + streamer, "best", "-np", "omxplayer -o hdmi --win \"40 25 1880 1055\""])
+    return "Opening stream"
+
 
 @app.route("/stream/play", methods = ['POST'])
 def start_stream():
@@ -43,7 +50,7 @@ def shutdown():
 
 def terminate_stream(livestreamer):
     if(livestreamer.poll() is None):
-        livestreamer.terminate()
+        subprocess.call(["killall", "omxplayer.bin"])
         livestreamer.wait()
         return
     else:
